@@ -2,6 +2,8 @@
 
 import { slugify } from '~/utils/formatters'
 import { boardModel } from '~/models/boardModel'
+import { columnModel } from '~/models/columnModel'
+import { cardModel } from '~/models/cardModel'
 import ApiError from '~/utils/ApiError'
 import { StatusCodes } from 'http-status-codes'
 import { cloneDeep } from 'lodash'
@@ -50,7 +52,39 @@ const getDetails = async (boardId) => {
     return resBoard
   } catch (error) {throw error}
 }
+
+const update = async (boardId, reqbody) => {
+  try {
+    const updateData = {
+      ...reqbody,
+      updatedAt: Date.now()
+    }
+    const updateBoard = await boardModel.update(boardId, updateData)
+
+    return updateBoard
+  } catch (error) {throw error}
+}
+const moveCardToDifferentColumn = async (reqbody) => {
+  try {
+    await columnModel.update(reqbody.prevColumnId, {
+      cardOrderIds: reqbody.prevCardOrderIds,
+      updatedAt: Date.now()
+    })
+    await columnModel.update(reqbody.nextColumnId, {
+      cardOrderIds: reqbody.nextCardOrderIds,
+      updatedAt: Date.now()
+    })
+    await cardModel.update(reqbody.currentCardId, {
+      columnId: reqbody.nextColumnId
+    })
+
+    return { updateResult: 'Successfully!' }
+  } catch (error) {throw error}
+}
+
 export const boardService = {
   createNew,
-  getDetails
+  getDetails,
+  update,
+  moveCardToDifferentColumn
 }
