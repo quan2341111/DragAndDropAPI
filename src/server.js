@@ -20,10 +20,18 @@ const START_SERVER = () => {
 
   //Middlware xử lý lỗi tập trung
   app.use(errorHandlingMiddleware)
+  //môi trường Production (cụ thể hiện tại là đang support Render.com)
+  if (env.BUILD_MODE === 'production') {
+    app.listen(process.env.PORT, () => {
+      console.log(`3. Production: Hello ${env.AUTHOR}, Back-end Server is running successfully at Port:${process.env.PORT}/`)
+    })
+  } else {
+    //môi trường dev
+    app.listen(env.LOCAL_DEV_APP_PORT, env.LOCAL_DEV_APP_HOST, () => {
+      console.log(`3. Local DEV: Hello ${env.AUTHOR}, Back-end Server is running successfully ${env.LOCAL_DEV_APP_HOST}:${env.LOCAL_DEV_APP_PORT}/`)
+    })
+  }
 
-  app.listen(env.APP_PORT, env.APP_HOST, () => {
-    console.log(`3. Hello ${env.AUTHOR}, Back-end Server is running successfully ${env.APP_HOST}:${env.APP_PORT}/`)
-  })
   //thực hiện scleanup trước khi dừng server
   exitHook(() => {
     console.log('4.Disconnecting from MongoDB Atlas')
@@ -32,7 +40,7 @@ const START_SERVER = () => {
   })
 }
 
-( async () => {
+(async () => {
   try {
     console.log('1. Connecting to MongoDB Cloud Atlas!')
     await CONNECT_DB(console.log('2. Connected to MongoDB Cloud Atlas!'))
